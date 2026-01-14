@@ -35,6 +35,10 @@ namespace sat {
      */
     class Clause {
         // @TODO Private members here
+    private:
+        std::vector<Literal> literals;
+        std::size_t firstWatcher;
+        std::size_t secondWatcher;
     public:
 
         /**
