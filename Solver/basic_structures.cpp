@@ -12,46 +12,58 @@ namespace sat {
 
 
     Variable::Variable(unsigned val) {
-        throw NOT_IMPLEMENTED;
+        this->id = val;
     }
 
     unsigned Variable::get() const {
-        throw NOT_IMPLEMENTED;
+        return id;
     }
 
     bool Variable::operator==(Variable other) const {
-        throw NOT_IMPLEMENTED;
+        return this->id == other.id;
     }
 
     Literal::Literal(unsigned val) {
-        throw NOT_IMPLEMENTED;
+        this->id = val;
     }
 
     unsigned Literal::get() const {
-        throw NOT_IMPLEMENTED;
+        return id;
     }
 
     Literal Literal::negate() const {
-        throw NOT_IMPLEMENTED;
+        if (this->id % 2 == 0) {
+            return Literal(this->id + 1);
+        } else { //this->id % 2 == 1
+            return Literal(this->id - 1);
+        }
     }
 
     short Literal::sign() const {
-        throw NOT_IMPLEMENTED;
+        if (this->id % 2 == 0) {
+            return -1;
+        } else { //this->id % 2 == 1
+            return 1;
+        }
     }
 
     bool Literal::operator==(Literal other) const {
-        throw NOT_IMPLEMENTED;
+        return (this->id / 2 == other.id / 2) && (this->sign() == other.sign());
     }
 
     Literal pos(Variable x) {
-        throw NOT_IMPLEMENTED;
+        return Literal(2*x.get()+1);
     }
 
     Literal neg(Variable x) {
-        throw NOT_IMPLEMENTED;
+        return Literal(2*x.get());
     }
 
     Variable var(Literal l) {
-        throw NOT_IMPLEMENTED;
+        if (l.sign() == 1) {
+            return Variable((l.get()-1)/2);
+        } else { //l.sign() == -1
+            return Variable(l.get()/2);
+        }
     }
 }
