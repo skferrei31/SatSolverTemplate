@@ -9,11 +9,19 @@
 
 namespace sat {
     Solver::Solver(unsigned numVariables) {
-        throw NOT_IMPLEMENTED;
+        this->model.assign(numVariables, TruthValue::Undefined);
     }
 
     bool Solver::addClause(Clause clause) {
-        throw NOT_IMPLEMENTED;
+        if (clause.size() > 1) {
+            //create pointer for the clause we want to add
+            ClausePointer ptr = std::make_shared<Clause>(std::move(clause));
+            
+            this->clauses.push_back(ptr);
+            return true; 
+        } else { //cannot add an empty or unit clause
+            return false;
+        }
     }
 
     /**
@@ -24,9 +32,9 @@ namespace sat {
      * called 'unitLiterals'.
      */
     auto Solver::rebase() const -> std::vector<Clause> {
-        throw NOT_IMPLEMENTED;
-        /*
+
         std::vector<Clause> reducedClauses;
+
         // We check all clauses in the solver. If the clause is SAT (at least one literal is satisfied), we don't include it.
         // Additionally, we remove all falsified literals from the clauses since we only care about unassigned literals.
         for (const auto &c: clauses) {
@@ -67,23 +75,89 @@ namespace sat {
             reducedClauses.emplace_back(std::vector{l});
         }
 
-        return reducedClauses;*/
+        return reducedClauses;
     }
 
     TruthValue Solver::val(Variable x) const {
-        throw NOT_IMPLEMENTED;
+        //if variable is not in model then it's undefined
+        if(x.get() >= this->model.size()) {
+            return TruthValue::Undefined;
+        } else { //else we just check in the model
+            return this->model[x.get()];
+        }
     }
 
     bool Solver::satisfied(Literal l) const {
-        throw NOT_IMPLEMENTED;
+        Variable l_var = var(l);
+
+        TruthValue l_value = this->model[l_var.get()];
+
+        //if varibale undefined then it's satisfied
+        if (l_value == TruthValue::Undefined) {
+            return false;
+        }
+
+        //if literal is positive and value is true in the model, or literal is negative and false in the model
+        if ((l_value == TruthValue::True && l.sign() == 1) || (l_value == TruthValue::False && l.sign() == -1 )) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     bool Solver::falsified(Literal l) const {
-        throw NOT_IMPLEMENTED;
+        /*
+        Variable l_var = var(l);
+
+        TruthValue l_value = this->model[l_var.get()];
+
+        //if varibale undefined then it's satisfied
+        if (l_value == TruthValue::Undefined) {
+            return false;
+        }
+
+        //if literal is positive and value is false in the model, or literal is negative and true in the model
+        if (l_value == TruthValue::True && l.sign() == -1 || l_value == TruthValue::False && l.sign() == 1 ) {
+            return true;
+        } else {
+            return false;
+        }
+        */
+
+        Variable x = var(l);
+        TruthValue see = this->model[x.get()];
+        if (see == TruthValue::Undefined) return false;
+
+        if (see == TruthValue::True) return l.sign() == -1;
+        if (see == TruthValue::False) return l.sign() == 1;
+        else return false;
     }
 
     bool Solver::assign(Literal l) {
-        throw NOT_IMPLEMENTED;
+        Variable l_var = var(l);
+        TruthValue l_value = this->model[l_var.get()];
+
+        //if not defined, then define
+        if (l_value == TruthValue::Undefined) {
+            if (l.sign() == 1) {
+                this->model[l_var.get()] = TruthValue::True;
+            } else { //l.sign() == -1
+                this->model[l_var.get()] = TruthValue::False;
+            }
+
+            //if we define a literal, we add it in the unitLiterals list
+            this->unitLiterals.push_back(l);
+            return true;
+        } 
+
+        //if already defined, if current value is same as new value, then assignment OK (nothing changes)
+        if ((l_value == TruthValue::True && l.sign() == 1) || (l_value == TruthValue::False && l.sign() == -1 )) {
+            //l is supposed to be in unitLiterals already so we don't add it in again
+            return true;
+        } 
+        
+        //else value can't change anyway so assignment KO
+        return false;
     }
 
     bool Solver::unitPropagate() {

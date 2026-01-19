@@ -29,6 +29,18 @@ namespace sat {
      */
     class Solver {
         // @TODO private members here
+    private:
+        //all clauses in solver using pointers
+        //
+        std::vector<ClausePointer> clauses;
+
+        //all unit literals in solver
+        std::vector<Literal> unitLiterals;
+
+        //all truth values of variables in the solver
+        //each indice of the vector is a variable
+        std::vector<TruthValue> model;
+        //std::vector<Variable> model_var;
     public:
 
         /**
