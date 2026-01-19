@@ -162,5 +162,23 @@ namespace sat {
 
     bool Solver::unitPropagate() {
         throw NOT_IMPLEMENTED;
+
+        //we search a unit clause
+            //if there is: we take the clause and assign the literal l in the model as true to its correspodning variable
+            //if there isn't: we take the first clause, and assign the first literal l as true arbitrarly
+
+        //then, we propagate:
+            //each clause contaning l is removed from the solver 
+            //each clause contaning not_l is reduced 
+            //+++protip: normally rebase() is used for this
+
+        //then we repeat steps 1 and 2 until every variable in the model is assigned
+            //if the model is true, then we finished
+            //if the model is false, we go back to the point where we made the most recent arbitrary assignment, make another choice then repeat
+                //if both choices failed, we go back to the previous arbitrary assignment and mak another choice
+                    /*if there are no more possibilities of arbitrary assignments to be made and the model is still false, 
+                    then it's over and the model is unsolvable */
+        
+        
     }
 } // sat
