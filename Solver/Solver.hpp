@@ -12,6 +12,7 @@
 
 #include "basic_structures.hpp"
 #include "Clause.hpp"
+#include "heuristics.hpp"
 
 namespace sat {
     /*
@@ -40,7 +41,15 @@ namespace sat {
         //all truth values of variables in the solver
         //each indice of the vector is a variable
         std::vector<TruthValue> model;
-        //std::vector<Variable> model_var;
+
+        // Heuristic logic
+        //for now we use the one in the subject
+        Heuristic heuristic = FirstVariable();// Store the wrapper
+
+        //level in the tree
+        //keep assigned literal which was a choice made by heuristic
+        //used for backtrack in solve
+        int level=0;
     public:
 
         /**
@@ -53,7 +62,6 @@ namespace sat {
         /*
          * @TODO if you want, you can declare additional constructors here
          */
-
 
         /*
          * You can design the interface of your solver as you want. You can for example add clauses already in the
@@ -107,6 +115,12 @@ namespace sat {
          * @return true if unit propagation was successful, false otherwise
          */
         bool unitPropagate();
+
+        /**
+         * Solves the model.
+         * @return true if SAT, false if UNSAT
+         */
+        bool solve();
 
     };
 } // sat

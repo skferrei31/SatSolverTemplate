@@ -225,4 +225,56 @@ namespace sat {
 
         return true; //no more units to propagate and no conflicts found
     }
+
+    bool Solver::solve() {
+
+        bool found = false;
+        bool all_assigned;
+
+        while(!found) {
+            //if unitPropagation ever false then backtrack
+            if (!unitPropagate()) {
+                //if no backtrack possible, formula is UNSAT
+                if (level==0) {
+                    return false;
+                }
+                
+                level=level-1;
+                for (Literal l : unitLiterals) {
+                    //reassign first literal with opposite truthvalue
+                    if(l == unitLiterals[0]) {
+                        this->assign(l.negate());
+                        level+=1;
+                    } else { 
+                        //unassign all modified values at this level
+                        Variable v = var(l);
+                        this->model[v.get()] = TruthValue::Undefined;
+                        std::erase(unitLiterals, l);
+                    }
+                }   
+            }
+
+            //if no unit clause, we use heuristic to arbitrarly assign a variable to true
+            if (unitLiterals.size()==0) {
+                Variable x = this->heuristic(this->model, this->model.size());
+                this->assign(pos(x));
+                level+=1;
+            }
+
+            //we check if every variable has been assigned
+            all_assigned = true;
+            for (TruthValue t : this->model) {
+                if (t == TruthValue::Undefined) {
+                    all_assigned = false;
+                    break;
+                }
+            }
+
+            //if every variable has been assigned, it's over
+            if(all_assigned) {
+                found = true;
+            }
+        }
+        
+    }
 } // sat
