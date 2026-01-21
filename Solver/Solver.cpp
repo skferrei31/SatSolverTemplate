@@ -13,15 +13,23 @@ namespace sat {
     }
 
     bool Solver::addClause(Clause clause) {
-        if (clause.size() > 1) {
-            //create pointer for the clause we want to add
-            ClausePointer ptr = std::make_shared<Clause>(std::move(clause));
+        if (clause.size() == 0) return false; //cannot add an empty clause
+
+        if (clause.size() == 1) {
+            Literal l = clause[0];
+            if (falsified(l)) return false; //if unit caluse is falsified then conflict with model
             
-            this->clauses.push_back(ptr);
-            return true; 
-        } else { //cannot add an empty or unit clause
-            return false;
+            //only add unassigned clauses
+            if (!satisfied(l)) {
+                //assign already adds in unitLiteral
+                this->assign(l);
+            }
+            return true;
         }
+
+        //else we add clause regardless
+        this->clauses.push_back(std::make_shared<Clause>(std::move(clause))); //add pointer not clause directly
+        return true;
     }
 
     /**
@@ -161,8 +169,6 @@ namespace sat {
     }
 
     bool Solver::unitPropagate() {
-        throw NOT_IMPLEMENTED;
-
         //we search a unit clause
             //if there is: we take the clause and assign the literal l in the model as true to its correspodning variable
             //if there isn't: we take the first clause, and assign the first literal l as true arbitrarly
@@ -178,7 +184,45 @@ namespace sat {
                 //if both choices failed, we go back to the previous arbitrary assignment and mak another choice
                     /*if there are no more possibilities of arbitrary assignments to be made and the model is still false, 
                     then it's over and the model is unsolvable */
-        
-        
+
+        bool changed = true;
+
+        while (changed) {
+            changed = false;
+            
+            //get simplified formula
+            //get clauses reduced by the current model assignments
+            std::vector<Clause> currentFormula = this->rebase();
+
+            for (const auto& c : currentFormula) {
+                //if clause is empty, model false
+                if (c.size() == 0) {
+                    return false; 
+                }
+
+                //only cares about unit clauses
+                if (c.size() == 1) {
+                    Literal unit = c[0];
+                    
+                    //assign literal if unassigned
+                    if (val(var(unit)) == TruthValue::Undefined) {
+                        this->assign(unit);
+                        
+                        //only add to unitLiterals if not already there
+                        //check necessary to prevent duplicates
+                        if (std::find(unitLiterals.begin(), unitLiterals.end(), unit) == unitLiterals.end()) {
+                            this->unitLiterals.push_back(unit);
+                        }
+
+                        changed = true; 
+                        //since unit was found and model has changed, 
+                        //must restart the scan to see if this created new unit clauses
+                        break; 
+                    }
+                }
+            }            
+        }
+
+        return true; //no more units to propagate and no conflicts found
     }
 } // sat
